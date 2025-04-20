@@ -1,0 +1,64 @@
+# Виртуальное окружение
+.venv/
+env/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Файлы настроек окружения
+.env
+.env.*
+.venv
+
+# Логи и отчёты
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+
+# Тестовые артефакты
+htmlcov/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+
+# Документация
+docs/_build/
+
+# Docker
+*.dockerignore
+docker-compose.override.yml
+docker-compose.*.yml
+
+# Сборки и пакеты
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# IDE и редакторы
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Операционная система
+.DS_Store
+Thumbs.db
+
+# SQLAlchemy и миграции (если используете Alembic)
+alembic/versions/*.py
+
+# Swagger / OpenAPI (если генерируете статику)
+openapi.json
+openapi.yaml
+
+# Дополнительное кеширование
+.mypy_cache/
