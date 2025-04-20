@@ -3,9 +3,9 @@ from typing import Dict
 
 
 class Settings(BaseSettings):
-    SECRET_KEY: str = "I0KjnLaDg8WnK-xY1ynHh1xn-uNPActP32hmi8Z7OT8"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
     
     DATABASE_URL: str
     
@@ -21,7 +21,8 @@ class Settings(BaseSettings):
     
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_file_encoding="utf-8"
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 

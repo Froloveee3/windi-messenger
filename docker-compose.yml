@@ -1,38 +1,61 @@
 services:
-  web:
-    build: .
-    ports:
-      - "8000:8000"
-    env_file: .env
-    depends_on:
-      - db
-    volumes:
-      - .:/app
   db:
     image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: messenger
+    env_file: .env
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
-      - "5432:5432"
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
     volumes:
       - db_data:/var/lib/postgresql/data
+
   test:
-    build:
-      context: .
-    command: ["sh", "-c", "pytest tests/ -v"]
-    entrypoint: ""
+    build: .
+    env_file: .env
     environment:
       - TESTING=1
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=messenger
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=${POSTGRES_TEST_DB}
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -euo pipefail
+
+        export PGPASSWORD="${POSTGRES_PASSWORD}"
+        echo "🕑 ждём Postgres…"
+        until pg_isready -h db -U "${POSTGRES_USER}"; do sleep 1; done
+
+        echo "📦 создаём/проверяем тестовую базу ${POSTGRES_TEST_DB}…"
+        psql -h db -U "${POSTGRES_USER}" -d postgres -tAc \
+          "SELECT 1 FROM pg_database WHERE datname='${POSTGRES_TEST_DB}'" \
+          | grep -q 1 || createdb -h db -U "${POSTGRES_USER}" "${POSTGRES_TEST_DB}"
+        
+        echo "🔄 Применяем миграции на тестовую БД…"
+        export DATABASE_URL="postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_TEST_DB}"
+
+        alembic upgrade head
+
+        echo "✅ миграции применены — запускаем pytest"
+        exec pytest -v tests
+    volumes:
+      - .:/app
+
+  web:
+    build: .
     env_file: .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      test:
+        condition: service_completed_successfully
+    ports:
+      - '8000:8000'
     volumes:
       - .:/app
 

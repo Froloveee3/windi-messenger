@@ -10,7 +10,6 @@ __pycache__/
 
 # Файлы настроек окружения
 .env
-.env.*
 .venv
 
 # Логи и отчёты
@@ -52,9 +51,6 @@ dist/
 # Операционная система
 .DS_Store
 Thumbs.db
-
-# SQLAlchemy и миграции (если используете Alembic)
-alembic/versions/*.py
 
 # Swagger / OpenAPI (если генерируете статику)
 openapi.json

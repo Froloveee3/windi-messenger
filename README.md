@@ -32,28 +32,37 @@
     git clone https://github.com/Froloveee3/windi-messenger.git
     cd windi-messenger
     ```
-
 2. **Создаём `.env`:**
-   ```env
-   DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/messenger
-   ```
+    - Копируем `.env.example` в `.env`:
+        ```bash
+        cp .env.example .env
+        ```
+    - В `.env` задать переменные (пример):
+        ```dotenv
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=postgres
+        POSTGRES_DB=messenger
+        POSTGRES_TEST_DB=messenger_test
+        POSTGRES_PORT=5432
+        
+        DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
+        
+        SECRET_KEY=I0KjnLaDg8WnK-xY1ynHh1xn-uNPActP32hmi8Z7OT8
+        ```
 3. **Собираем и запускаем всё через Docker Compose:**
     ```bash
     docker compose up --build
     ```
-4. **Бэкенд доступен на http://localhost:8000/:**
-    - **Healthcheck:** GET /api/v1/health/
-    - **Swagger/OpenAPI:** http://localhost:8000/docs
+4. **Бэкенд доступен на** http://localhost:8000/:  
+    - **Healthcheck:** GET /api/v1/health/  
+    - **Swagger/OpenAPI:** http://localhost:8000/docs  
     - **ReDoc:** http://localhost:8000/redoc
-5. **Чтобы миграции применились автоматически, в Dockerfile прописано:**
-    ```bash
-    alembic upgrade head
-    ```
-6. **Запуск тестов (контейнер “test”):**
+5. **Запуск тестов (контейнер “test”):**
     ```bash
     docker compose run --rm test
     # 19 passed, 3 warnings
     ```
+
 ## 📖 Примеры API
 1. **Получить токен**
     ```bash
@@ -81,20 +90,41 @@
         ```bash
         {"type":"read","message_id":<MESSAGE_ID>}
         ```
-## ✅ Тестирование
-```bash
-docker compose run --rm test
-# Вывод: 19 passed, 3 warnings
-```
 
 ## 📂 Миграции
-- Скрипты в alembic/versions/
-- При старте контейнера:
+- Скрипты в `alembic/versions/` находятся в репозитории.
+- При старте контейнера выполняется:
     ```bash
     alembic upgrade head
     ```
 
+## 🛡 Права администратора
+По умолчанию все новые пользователи создаются с `is_admin = FALSE`. Чтобы дать пользователю права администратора:
+```bash
+# Например, если POSTGRES_USER=postgres и POSTGRES_DB=messenger
+docker compose exec db psql -U postgres -d messenger
+```
 
+После входа в консоль выполните SQL:
 
+```sql
+UPDATE users
+SET is_admin = TRUE
+WHERE id = 1;
+```
 
+Проверка:
+```sql
+SELECT id, name, email, is_admin
+FROM users
+WHERE id = 1;
+```
 
+Пользователь с `id = 1` теперь обладает административными командами.
+
+## ✅ Тестирование
+```bash
+# Запуск тестов
+docker compose run --rm test
+# Вывод: 19 passed, 3 warnings
+```
